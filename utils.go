@@ -140,6 +140,18 @@ func isArrayKey(v LNumber) bool {
 	return isInteger(v) && v < LNumber(int((^uint(0))>>1)) && v > LNumber(0) && v < LNumber(MaxArrayIndex)
 }
 
+func isArrayKeyEnhance(v LNumber, tb *LTable) bool {
+	if tb.array != nil {
+		if v > LNumber(cap(tb.array)*2) {
+			return false
+		}
+
+		return true
+	}
+
+	return v <= LNumber(defaultArrayCap)
+}
+
 func parseNumber(number string) (LNumber, error) {
 	var value LNumber
 	number = strings.Trim(number, " \t\n")

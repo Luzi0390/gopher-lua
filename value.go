@@ -148,6 +148,8 @@ type LTable struct {
 	strdict map[string]LValue
 	keys    []LValue
 	k2i     map[LValue]int
+
+	pairsHashFlag bool
 }
 
 func (tb *LTable) String() string   { return fmt.Sprintf("table: %p", tb) }
