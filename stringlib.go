@@ -148,7 +148,7 @@ func strFormat(L *LState) int {
 func strGsub(L *LState) int {
 	str := L.CheckString(1)
 	pat := L.CheckString(2)
-	L.CheckTypes(3, LTString, LTTable, LTFunction)
+	L.CheckTypes(3, LTString, LTTable, LTFunction, LTNil, LTNumber)
 	repl := L.CheckAny(3)
 	limit := L.OptInt(4, -1)
 
@@ -168,6 +168,10 @@ func strGsub(L *LState) int {
 		L.Push(LString(strGsubTable(L, str, lv, mds)))
 	case *LFunction:
 		L.Push(LString(strGsubFunc(L, str, lv, mds)))
+	case LNumber:
+		L.Push(LString(strGsubStr(L, str, lv.String(), mds)))
+	case *LNilType:
+		L.Push(LString(str))
 	}
 	L.Push(LNumber(len(mds)))
 	return 2
