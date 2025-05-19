@@ -3,6 +3,11 @@ package lua
 const defaultArrayCap = 32
 const defaultHashCap = 32
 
+func NewLValueArraySorter(L *LState, Fn *LFunction, Values []LValue) lValueArraySorter {
+	sorter := lValueArraySorter{L, Fn, RebuildValues(Values)}
+	return sorter
+}
+
 type lValueArraySorter struct {
 	L      *LState
 	Fn     *LFunction
@@ -28,6 +33,26 @@ func (lv lValueArraySorter) Less(i, j int) bool {
 	return lessThan(lv.L, lv.Values[i], lv.Values[j])
 }
 
+func RebuildValues(array []LValue) []LValue {
+	cnt := 0
+	for _, v := range array {
+		if v != nil && v != LNil {
+			cnt += 1
+		}
+	}
+
+	newArray := make([]LValue, cnt)
+	index := 0
+	for _, v := range array {
+		if v != nil && v != LNil {
+			newArray[index] = v
+			index++
+		}
+	}
+
+	return newArray
+}
+
 func newLTable(acap int, hcap int) *LTable {
 	if acap < 0 {
 		acap = 0
@@ -44,6 +69,14 @@ func newLTable(acap int, hcap int) *LTable {
 		tb.strdict = make(map[string]LValue, hcap)
 	}
 	return tb
+}
+
+func (tb *LTable) createNewArray(cap int) []LValue {
+	ret := make([]LValue, cap)
+	for i := 0; i < cap; i++ {
+		ret[i] = LNil
+	}
+	return ret
 }
 
 // Len returns length of this LTable without using __len.
