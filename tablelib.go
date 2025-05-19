@@ -11,12 +11,14 @@ func OpenTable(L *LState) int {
 }
 
 var tableFuncs = map[string]LGFunction{
-	"getn":   tableGetN,
-	"concat": tableConcat,
-	"insert": tableInsert,
-	"maxn":   tableMaxN,
-	"remove": tableRemove,
-	"sort":   tableSort,
+	"getn":       tableGetN,
+	"concat":     tableConcat,
+	"insert":     tableInsert,
+	"maxn":       tableMaxN,
+	"remove":     tableRemove,
+	"sort":       tableSort,
+	"clear":      tableClear,
+	"clearOrNew": tableClearOrNew,
 }
 
 func tableSort(L *LState) int {
@@ -95,6 +97,46 @@ func tableInsert(L *LState) int {
 	}
 	tbl.Insert(int(L.CheckInt(2)), L.CheckAny(3))
 	return 0
+}
+
+func tableClear(L *LState) int {
+	tbl := L.CheckTable(1)
+	nargs := L.GetTop()
+	if nargs != 1 {
+		L.RaiseError("wrong number of arguments")
+	}
+
+	tbl.array = nil
+	tbl.dict = nil
+	tbl.strdict = nil
+	tbl.keys = nil
+	tbl.k2i = nil
+
+	tbl.pairsHashFlag = false
+
+	return 0
+}
+
+func tableClearOrNew(L *LState) int {
+	tbl := L.ToTable(1)
+	nargs := L.GetTop()
+	if nargs != 1 {
+		L.RaiseError("wrong number of arguments")
+	}
+
+	if tbl == nil {
+		tbl = L.NewTable()
+	}
+
+	tbl.array = nil
+	tbl.dict = nil
+	tbl.strdict = nil
+	tbl.keys = nil
+	tbl.k2i = nil
+	tbl.pairsHashFlag = false
+	L.Push(tbl)
+
+	return 1
 }
 
 //
