@@ -2,6 +2,7 @@ package lua
 
 const defaultArrayCap = 32
 const defaultHashCap = 32
+const maxBits = 32
 
 func NewLValueArraySorter(L *LState, Fn *LFunction, Values []LValue) lValueArraySorter {
 	sorter := lValueArraySorter{L, Fn, RebuildValues(Values)}
