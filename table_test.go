@@ -231,3 +231,173 @@ func TestTableForEach(t *testing.T) {
 		}
 	})
 }
+
+func TestTableNext(t *testing.T) {
+	L := NewState(Options{})
+	err := L.DoString(`
+        table = {
+			[1] = {
+ 				123
+			},
+            [1001]=
+			  {
+			  	servername=''
+			  },
+            [1002]=
+			  {
+				servername=''
+			  }
+        }
+
+		for k, v in pairs(table) do
+			print(k, v)
+		end
+
+		print("table.len: " .. #table)
+    `)
+
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestTableSort(t *testing.T) {
+	L := NewState(Options{})
+	err := L.DoString(`
+	function test()
+        a = {
+			4, 5, 6
+        }
+
+		print("a.len " .. table.getn(a))
+
+		table.sort(a)
+
+		table.insert(a, 3)
+		table.insert(a, 2)
+		table.insert(a, 1)
+
+		print("a.len " .. table.getn(a))
+
+		table.sort(a)
+
+		for k, v in pairs(a) do
+			print(k, v)
+		end
+
+		print("after sort: ")
+		print("a.len " .. table.getn(a))
+
+		table.insert(a, 2)
+		print("a.len " .. table.getn(a))
+
+		table.remove(a, 3)
+		print("a.len " .. table.getn(a))
+		a[#a] = nil
+
+		print("a.len " .. table.getn(a))
+		for k, v in pairs(a) do
+			print(k, v)
+		end
+
+		table.sort(a)
+		print ("======================")
+
+		for k, v in pairs(a) do
+			print(k, v)
+		end
+		print("a.len: " .. table.getn(a))
+	end
+	test()
+
+    `)
+
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestTableUnpack(t *testing.T) {
+	L := NewState(Options{})
+	err := L.DoString(`
+
+	__print = __print or print
+
+	function _print(...)
+		local t = {...}
+		for _, arg in ipairs(t or {}) do
+			if type(arg) == TYPE_STR or type(arg) == TYPE_NUM then
+				__print(arg)
+			elseif type(arg) == TYPE_BOOL or type(arg) == TYPE_FUN then
+				__print(tostring(arg))
+			elseif type(arg) == TYPE_TAB then
+				PrintTable(arg)
+			else
+				__print(arg)
+			end
+		end
+	end
+
+	local printed = {}
+	local function _PrintTable( t, space )
+		if printed[t] then
+			return
+		end
+		printed[t] = 1
+	
+		if( space == nil ) then space = "  " end
+		if( t == nil )then
+			_print( space.."nil" )
+			return
+		end
+		if( type(t) ~= "table" )then
+			_print( space .. " expected table, got " .. type(t))
+			return
+		end
+		_print( space.."{" )
+		for k,v in pairs(t) do
+			if( type(v) ~= "table" )then
+				if( type(v) == "string" )then
+					if( type(k) == "number" )then
+						_print( space.."["..k.."]='"..tostring(v).."'" )
+					else
+						_print( space..k.."='"..tostring(v).."'" )
+					end
+				else
+					if( type(k) == "number" )then
+						_print( space.."["..k.."]="..tostring(v) )
+					else
+						_print( space..k.."="..tostring(v) )
+					end
+				end
+			else
+				if( type(k) == "number" )then
+					_print( space.."["..k.."]=" )
+				else
+					_print( space..k.."=" )
+				end
+				spaceNext = space.."  "
+				PrintTable( v, spaceNext )
+			end
+		end
+		_print( space.."}" )
+	end
+
+	function PrintTable(t,space)
+		table.clear(printed)
+		_PrintTable( t, space )
+	end
+
+	function test(...)
+		local a = {...}
+		PrintTable({unpack(a)})
+	end
+
+	test({}, 1, "1231231", { "a", "b", "c", "d", "e", "f", "g", "h", "i" })
+
+    `)
+
+	if err != nil {
+		t.Error(err)
+	}
+}
